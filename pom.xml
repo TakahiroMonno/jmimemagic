@@ -131,7 +131,7 @@
           <include>*.json</include>
         </includes>
         <excludes>
-          <exclude>log4j.properties</exclude>
+          <exclude>log4j2.xml</exclude>
         </excludes>
       </resource>
     </resources>
@@ -272,9 +272,9 @@
     <!-- common compile time dependencies -->
 
     <dependency>
-      <groupId>commons-logging</groupId>
-      <artifactId>commons-logging</artifactId>
-      <version>1.0.4</version>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-jcl</artifactId>
+      <version>2.24.3</version>
       <scope>compile</scope>
     </dependency>
 
@@ -288,9 +288,9 @@
     <!-- common runtime only dependencies -->
 
     <dependency>
-      <groupId>log4j</groupId>
-      <artifactId>log4j</artifactId>
-      <version>1.2.8</version>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-core</artifactId>
+      <version>2.24.3</version>
       <scope>runtime</scope>
     </dependency>
 
