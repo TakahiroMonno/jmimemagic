@@ -1,0 +1,811 @@
+diff --git a/jmimemagic-without.md b/jmimemagic-with.md
+similarity index 51%
+rename from jmimemagic-without.md
+rename to jmimemagic-with.md
+index fbc823e..48266dc 100644
+--- a/jmimemagic-without.md
++++ b/jmimemagic-with.md
+@@ -55,33 +55,32 @@
+   3. 残っている問題                                                             
+   4. 完了したと判断した理由                                                     
+                                                                                 
++  ## Additional Instruction                                                     
++                                                                                
++  移行を行う際には、                                                            
++  同梱されている                                                                
++                                                                                
++  migration_guide.md                                                            
++                                                                                
++  を積極的に参照してください。                                                  
++                                                                                
++  移行方法に迷った場合は、                                                      
++  まず migration_guide.md を確認してから修正してください。                      
++                                                                                
+ 
+-⏺ まずプロジェクトの構成とlog4j依存の使用状況を調査します。
+-
+-  Searched for 5 patterns, read 2 files, ran 6 shell commands (ctrl+o to expand)
++  Searched for 2 patterns, read 3 files, ran 3 shell commands (ctrl+o to expand)
+ 
+-⏺ Java 8を使えば source/target 1.6のまま既存pom設定でビルド可能なことを確認しま
+-  した。この状態で今回のlog4j移行作業を進めます。
++⏺ ネットワークアクセス可能なので、Java 8対応の最新log4j2バージョンを確認します。
+ 
+-  Searched for 2 patterns, ran 1 shell command (ctrl+o to expand)
++  Searched for 2 patterns, ran 5 shell commands (ctrl+o to expand)
+ 
+-⏺ まず既存のログ出力の仕組み（commons-logging経由）を確認したので、Log4j
+-  2への移行方針を検証します。ネットワーク接続とcommons-loggingのSPI検出機構を確
+-  認します。
++⏺ Legacy の project.xml（Maven 1形式）にも同様の記述があるので、そちらも整合性の
++  ため更新します。まず現在のテスト実行状況を確認してからpom.xmlを編集します。
+ 
+   Ran 1 shell command (ctrl+o to expand)
+ 
+-⏺ Maven Centralへの接続とcommons-loggingのjarキャッシュを確認できました。commons
+-  -logging 1.0.4のSPI検出機構(META-INF/services)の有無を確認します。
+-
+-  Ran 3 shell commands (ctrl+o to expand)
+-
+-⏺ confirmed: SERVICE_ID = 
+-  "META-INF/services/org.apache.commons.logging.LogFactory" —
+-  SPI検出はcommons-logging 1.0.4から存在します。次にlog4j-jclブリッジがこの仕組
+-  みで登録されるか確認します。
+-
+-  Read 1 file, ran 2 shell commands (ctrl+o to expand)
++⏺ JDK 8 がローカルにあるので、それを使ってビルド検証ができます。まず pom.xml
++  を編集します。
+ 
+ ⏺ Update(pom.xml)
+   ⎿  Added 1 line, removed 1 line
+@@ -95,7 +94,20 @@
+       137      </resources>
+ 
+ ⏺ Update(pom.xml)
+-  ⎿  Added 10 lines, removed 3 lines
++  ⎿  Added 6 lines, removed 6 lines
++      272      <!-- common compile time dependencies -->
++      273  
++      274      <dependency>
++      275 -      <groupId>commons-logging</groupId>                      
++      276 -      <artifactId>commons-logging</artifactId>                
++      277 -      <version>1.0.4</version>                                
++      275 +      <groupId>org.apache.logging.log4j</groupId>             
++      276 +      <artifactId>log4j-jcl</artifactId>                      
++      277 +      <version>2.24.3</version>                               
++      278        <scope>compile</scope>
++      279      </dependency>
++      280  
++     ...
+       288      <!-- common runtime only dependencies -->
+       289  
+       290      <dependency>
+@@ -104,64 +116,12 @@
+       293 -      <version>1.2.8</version>                                
+       291 +      <groupId>org.apache.logging.log4j</groupId>             
+       292 +      <artifactId>log4j-core</artifactId>                     
+-      293 +      <version>2.23.1</version>                               
++      293 +      <version>2.24.3</version>                               
+       294        <scope>runtime</scope>
+       295      </dependency>
+       296  
+-      297 +    <dependency>                                              
+-      298 +      <groupId>org.apache.logging.log4j</groupId>             
+-      299 +      <artifactId>log4j-jcl</artifactId>                      
+-      300 +      <version>2.23.1</version>                               
+-      301 +      <scope>runtime</scope>                                  
+-      302 +    </dependency>                                             
+-      303  
+-      304 +                                                              
+-      305      <!-- common testing only dependencies -->
+-      306  
+-      307      <dependency>
+ 
+-⏺ Update(project.xml)
+-  ⎿  Added 12 lines, removed 3 lines
+-      129      </dependency>
+-      130  
+-      131      <dependency>
+-      132 -      <groupId>log4j</groupId>                                
+-      133 -      <artifactId>log4j</artifactId>                          
+-      134 -      <version>1.2.8</version>                                
+-      132 +      <groupId>org.apache.logging.log4j</groupId>             
+-      133 +      <artifactId>log4j-core</artifactId>                     
+-      134 +      <version>2.23.1</version>                               
+-      135        <properties>
+-      136               <scope>runtime</scope>
+-      137        </properties>
+-      138      </dependency>
+-      139  
+-      140      <dependency>
+-      141 +      <groupId>org.apache.logging.log4j</groupId>             
+-      142 +      <artifactId>log4j-jcl</artifactId>                      
+-      143 +      <version>2.23.1</version>                               
+-      144 +      <properties>                                            
+-      145 +             <scope>runtime</scope>                                  
+-      146 +      </properties>                                           
+-      147 +    </dependency>                                             
+-      148 +                                                              
+-      149 +    <dependency>                                              
+-      150        <groupId>xerces</groupId>
+-      151        <artifactId>xerces</artifactId>
+-      152        <version>2.4.0</version>
+-
+-⏺ Update(project.xml)
+-  ⎿  Added 1 line, removed 1 line
+-      62            <include>*.dtd</include>
+-      63          </includes>
+-      64          <excludes>
+-      65 -          <exclude>log4j.properties</exclude>                  
+-      65 +          <exclude>log4j2.xml</exclude>                        
+-      66          </excludes>
+-      67        </resource>
+-      68      </resources>
+-
+-⏺ 次にlog4j.propertiesをlog4j2.xml形式に変換します。
++⏺ 次に log4j.properties を log4j2.xml に変換します。
+ 
+ ⏺ Write(src/main/resources/log4j2.xml)
+   ⎿  Wrote 21 lines to src/main/resources/log4j2.xml
+@@ -179,98 +139,131 @@
+ 
+   Ran 1 shell command (ctrl+o to expand)
+ 
+-⏺ ビルドを実行して検証します。
+-  Ran 1 shell command (ctrl+o to expand)
+-
+-⏺ コンパイル成功。次にテスト実行でログ出力が実際に機能するか確認します。
++⏺ Legacy の project.xml（Maven
++  1形式、実ビルドには使われないが整合性のため）も更新します。
+ 
+-  Ran 1 shell command (ctrl+o to expand)
++  Read 1 file (ctrl+o to expand)
+ 
+-⏺ テストは全てパスしました。ログファイルが実際にlog4j2で生成されているか確認しま
+-  す。
++⏺ Update(project.xml)
++  ⎿  Added 1 line, removed 1 line
++      62            <include>*.dtd</include>
++      63          </includes>
++      64          <excludes>
++      65 -          <exclude>log4j.properties</exclude>                  
++      65 +          <exclude>log4j2.xml</exclude>                        
++      66          </excludes>
++      67        </resource>
++      68      </resources>
+ 
+-  Ran 2 shell commands (ctrl+o to expand)
++⏺ Update(project.xml)
++  ⎿  Added 6 lines, removed 6 lines
++      120      </dependency>
++      121  
++      122      <dependency>
++      123 -      <groupId>commons-logging</groupId>                      
++      124 -      <artifactId>commons-logging</artifactId>                
++      125 -      <version>1.0.4</version>                                
++      123 +      <groupId>org.apache.logging.log4j</groupId>             
++      124 +      <artifactId>log4j-jcl</artifactId>                      
++      125 +      <version>2.24.3</version>                               
++      126        <properties>
++      127               <scope>compile</scope>
++      128        </properties>
++      129      </dependency>
++      130  
++      131      <dependency>
++      132 -      <groupId>log4j</groupId>                                
++      133 -      <artifactId>log4j</artifactId>                          
++      134 -      <version>1.2.8</version>                                
++      132 +      <groupId>org.apache.logging.log4j</groupId>             
++      133 +      <artifactId>log4j-core</artifactId>                     
++      134 +      <version>2.24.3</version>                               
++      135        <properties>
++      136               <scope>runtime</scope>
++      137        </properties>
+ 
+-⏺ ログ機構が実際に動作しているか確認するため、一時的にログレベルをDEBUGに下げて
+-  テストを実行します。
++  Ran 1 shell command (ctrl+o to expand)
+ 
+-  Ran 2 shell commands (ctrl+o to expand)
++⏺ ビルド・テスト成功。ログが実際にlog4j2経由で出力されているか、依存関係にlog4j
++  1.xが残っていないかを確認します。
+ 
+-⏺ ログ出力がLog4j2経由で完全に元のフォーマット通りに動作していることを確認できま
+-  した。設定を元のERROR levelに戻します。
++  Ran 4 shell commands (ctrl+o to expand)
++⏺ This confirms the full chain works correctly: JCLのAPI呼び出しがlog4j2にブリッ
++  ジされ、log4j2.xmlの設定通りにファイルへ、従来と同じパターン形式でログ出力され
++  ています。テスト用ファイルをクリーンアップしてから最終確認を行います。
+ 
+   Ran 1 shell command (ctrl+o to expand)
+ 
+-⏺ 最終確認として、完全なクリーンビルド（clean install相当のtest含む）とlog4j
+-  1.xの残存チェックを行います。
++⏺ Package もビルド成功。jar内にlog4j2.xmlが混入していないか、log4j1.x依存が全く
++  残っていないかを最終確認します。
+ 
+   Ran 3 shell commands (ctrl+o to expand)
+ 
+-⏺ 全て確認完了です。JDK 26環境でも問題ないか（ビルド環境依存の注記のため）と、テ
+-  スト後に残ったログファイルの扱いを確認しておきます。
++⏺ jar内には想定通りlog4j2.xmlは含まれておらず（ライブラリなのでconsumer側の設定
++  を上書きしない設計を維持)、テスト実行で生成された副産物ファイルを削除します。
+ 
+   Ran 1 shell command (ctrl+o to expand)
+ 
+-⏺ Log4j 1.x → 2.x への移行が完了しました。
++⏺ 全て確認完了です。以下に報告します。
+ 
+   1. 行った変更
+ 
+-  - pom.xml: log4j:log4j:1.2.8（runtime）を削除し、org.apache.logging.log4j:log4
+-  j-core:2.23.1 と org.apache.logging.log4j:log4j-jcl:2.23.1（両方runtime
+-  scope）を追加。リソースフィルタリング除外対象を log4j.properties → log4j2.xml
+-  に変更。
+-  - project.xml（レガシーなMaven1記述子、現行ビルドでは未使用だが整合性のため更
+-  新）: 同様にlog4j依存とリソース除外設定を更新。
+-  - src/main/resources/log4j.properties を削除し、src/main/resources/log4j2.xml 
+-  を新規作成。元の設定（root=ERROR、fileアペンダのみ有効、パターン %d [%t] %-5p 
+-  %c - %m%n、RollingFile 10000KB/バックアップ1件、net.sf.jmimemagicカテゴリ=ERRO
+-  R）を等価なLog4j2形式で再現。
+-  - Javaソースコードは無変更。アプリケーションは元々
+-  org.apache.commons.logging.Log/LogFactory（Commons
+-  Logging）経由でログ出力しており、log4j
+-  1.xのAPIを直接呼び出している箇所は存在しなかったため。log4j-jcl はApache
+-  Log4j2公式のCommons Logging⇔Log4j2ブリッジで、META-INF/services/org.apache.com
+-  mons.logging.LogFactory を通じてcommons-logging（1.0.4、SPI検出機構あり）から
+-  自動検出される。これにより、既存のlog.debug()等の呼び出しはコード変更なしでLog
+-  4j2バックエンドに切り替わる。
++  このプロジェクトはJavaコード側で
++  org.apache.commons.logging（JCL）をAPIとして使用し、log4j
++  1.xは実行時バックエンドとしてのみ使われていました（org.apache.log4j.*
++  の直接呼び出しはコード中に存在せず）。migration-guide.md の「Log4j 1 Backend
++  migration」（Table 5）に従い、コード変更なしでバックエンドのみ差し替えました。
++
++  - pom.xml
++    - log4j:log4j:1.2.8（runtime）→
++  org.apache.logging.log4j:log4j-core:2.24.3（runtime）
++    - commons-logging:commons-logging:1.0.4（compile）→
++  org.apache.logging.log4j:log4j-jcl:2.24.3（compile）※JCL
++  APIをlog4j2にブリッジする公式アダプタ。実co API実装クラス供給のためcommons-log
++  ging:1.3.4が推移的依存として入りますが、これはlog4j-jcl自体が要求するものであ
++  り、明示的なライブラリバージョン更新ではありません。
++    - resources除外設定を log4j.properties → log4j2.xml
++  に変更（ライブラリjarに設定ファイルを同梱しない従来方針を維持）
++  - project.xml（Maven1形式のレガシー記述、実ビルドには不使用だが整合性のため）
++  も同様に更新
++  - src/main/resources/log4j.properties を削除し、src/main/resources/log4j2.xml
++  を新規作成（同等のConsole/RollingFileアペンダー、net.sf.jmimemagicカテゴリ=ERR
++  OR、Root=ERRORを再現。Log4j1同等のロールオーバー番号付けのため fileIndex="min"
++  を追加）
++  - Javaソースコードの変更は不要でした
+ 
+   2. ビルド結果
+ 
+-  - mvn clean compile → 成功（コンパイルエラーなし）
+-  - mvn clean test → 全テスト成功（GIF/PNG/TIF/JPEG/Word/Excel/PDF/Postscript/ク
+-  ラスファイル/MP3/WAV/ODT/Zip/サブマッチ、計24ケース、ok表示）
+-  - ログレベルを一時的にDEBUGに変更して再実行し、jmimemagic.logに元と同一フォー
+-  マットでログが出力されることを確認（Log4j2が実際に動作していることの実証）。確
+-  認後ERRORレベルに戻し、生成された一時ログファイルは削除済み。
+-  - mvn dependency:tree で log4j（1.x）が存在せず、log4j-core/log4j-jcl/log4j-ap
+-  i（すべて2.23.1）のみが解決されることを確認。
++  JDK 8（temurin-8、Dockerfile記載の想定環境）で検証:
++  - mvn clean test → BUILD SUCCESS、既存25件のテスト全て成功
++  - mvn clean package → BUILD SUCCESS
++  - dependency:tree で log4j:log4j 系が完全に消え、log4j-core / log4j-jcl /
++  log4j-api のみになっていることを確認
++  - 手動検証: LogFactory.getLog(...) が org.apache.logging.log4j.jcl.Log4jLog
++  を返し、実際に log4j2.xml の設定通りのパターン(%d [%t] %-5p %c - 
++  %m%n)でファイル出力されることを確認（ログ出力の互換性を実証）
+ 
+-  なお、本環境ではmvn起動時のデフォルトJAVA_HOMEがJDK26相当のものを指しており、p
+-  omのsource/target=1.6設定と不整合でコンパイルエラーになる問題が既存していまし
+-  た（log4j移行とは無関係の環境依存の問題）。これはpomを変更せず、JAVA_HOMEをTem
+-  urin JDK8に切り替えて検証することで回避しています。
++  なお、ローカルのデフォルトJDK（Java 26）ではこのプロジェクトの
++  source/target=1.6 設定が処理できずビルド不可でしたが、これは元々（log4j移行前
++  ）から存在した制約で、Dockerfileが明示的にJDK8でビルドする設計になっているため
++  、その方針に合わせてJDK8で検証しました。
+ 
+   3. 残っている問題
+ 
+-  - リポジトリ内のコード・設定からlog4j
+-  1.x参照は完全に除去済みで、grepでも該当なし。
+-  - 上記のJAVA_HOME/JDKの不整合は、この環境固有の問題であり、pomのsource/target=
+-  1.6という既存設定自体は今回の移行対象外のため変更していません（実行時にJAVA_HO
+-  ME=JDK8を指定すれば問題なくビルドできます）。
++  - なし。log4j 1.x への参照（groupId log4j、org.apache.log4j.*
++  import等）はソース・pom・project.xmlのいずれにも残っていません。
++  - 補足: log4j-core 2.24.3 はJava 8対応の最終系列です（2.25.0以降はJava
++  11必須）。将来Java 11以上へ移行する際はより新しいlog4j2バージョンへの更新余地
++  があります（今回はlog4j以外・ビルド設定の変更を最小化する方針のため据え置き）
++  。
+ 
+   4. 完了と判断した理由
+ 
+-  - log4j 1.x依存が pom.xml / project.xml /
+-  リソースファイルのいずれからも除去され、代わりにlog4j 2.x（log4j-core,
+-  log4j-jcl）が導入されている。
+-  - mvn compileがコンパイルエラーなく成功し、mvn 
+-  testで既存の全テストがパスしている。
+-  - DEBUGレベルでの動作確認により、ログメッセージが従来と同一のフォーマット・内
+-  容でLog4j2バックエンドから出力されることを実証した（ログ出力挙動の後方互換性を
+-  確認）。
+-  - ソースコードやテストコードへの変更は行わず、「不要なリファクタリングをしない
+-  」「テストコード修正は最小限」という制約を満たしている。
+-
+-✻ Crunched for 8m 59s
++  - log4j 1.x依存（API・バックエンドとも）が完全に除去され、log4j
++  2.x（log4j-core, log4j-jcl, log4j-api）のみで構成されている
++  - mvn test / mvn package が共にJDK8でビルド成功し、既存テストが全てパス
++  - ログ出力が旧来と同一のフォーマット・ファイル名・ロールオーバー方式・ログレベ
++  ルで動作することを実際のブリッジ経由の出力で確認済み
++  - テストコード（MagicTest.java）は一切変更していません
+ 
+-※ recap: jMimeMagicをLog4j 1.x から 2.x へ移行する作業を完了しました。ビルド・テストとも成功し、log4j1.x残存も確認済みです。次のアクションは特になく、結果確認をお願いします。 (disable recaps in /config)
+\ No newline at end of file
++✻ Baked for 7m 15s
+\ No newline at end of file
+diff --git a/migration-guide.md b/migration-guide.md
+new file mode 100644
+index 0000000..7749491
+--- /dev/null
++++ b/migration-guide.md
+@@ -0,0 +1,375 @@
++Title: Migrating from Log4j 1 :: Apache Log4j
++
++URL Source: https://logging.apache.org/log4j/2.x/migrate-from-log4j1.html
++
++Published Time: Sat, 28 Mar 2026 11:05:44 GMT
++
++Markdown Content:
++[Log4j 1](http://logging.apache.org/log4j/1.x) has [reached End of Life](https://news.apache.org/foundation/entry/apache_logging_services_project_announces) in 2015, and is no longer supported. Vulnerabilities reported after August 2015 against Log4j 1 are not checked and will not be fixed. Users should [upgrade to Log4j 2](https://logging.apache.org/log4j/2.x/migrate-from-log4j1.html#) to obtain security fixes.
++
++Since Log4j 2 has been rewritten from scratch, it introduces many breaking changes to its predecessor. Most notably:
++
++*   It uses a new package namespace (`org.apache.logging.log4j`), whereas Log4j 1 used the `org.apache.log4j` namespace,
++
++*   It features a [logging API](https://logging.apache.org/log4j/2.x/manual/api.html) which is independent of its reference implementation,
++
++*   It uses a new more flexible [configuration file format](https://logging.apache.org/log4j/2.x/manual/configuration.html), which is **incompatible** with the format used by Log4j 1.
++
++## [](https://logging.apache.org/log4j/2.x/migrate-from-log4j1.html#prepare-to-migrate)Prepare to migrate
++
++Are you a library developer?
++
++If you are developing a library, which functionality is not related to logging, you only need to rewrite the library to use Log4j 2 API. Skip directly to [Log4j 1 API migration](https://logging.apache.org/log4j/2.x/migrate-from-log4j1.html#api-migration).
++
++In order to migrate your application to Log4j 2 you need to assess first how your application **and** its dependencies use Log4j 1. While Log4j 1 didn’t have a formal split between a logging API and a logging backend, for the purpose of this guide, we’ll introduce the following split:
++
++Log4j 1 API
++It is the part of the Log4j 1 library that produces log events, and it is the most commonly used. The methods that are considered part of the Log4j 1 API are listed below:
++
++Table 1. Log4j 1 API methods
++| Class name | Methods |
++| --- | --- |
++| `org.apache.log4j.MDC` | All methods |
++| `org.apache.log4j.NDC` | All methods |
++| `org.apache.log4j.Priority` | All methods |
++| `org.apache.log4j.Level` | All methods |
++| `org.apache.log4j.Category` | All methods, except: methods for the [AppenderAttachable](https://logging.apache.org/log4j/1.x/apidocs/org/apache/log4j/spi/AppenderAttachable.html) interface, `callsAppenders` and `setLevel`. |
++| `org.apache.log4j.Logger` | Same as `Category` |
++| `org.apache.log4j.LogManager` | All methods |
++Log4j 1 Backend
++This is the part of the logging library that consumes log events, formats them and writes to their destination. It also allows to configure Log4j 1 programmatically. It is usually **not used** in code, since the recommended way to configure Log4j 1 is through a configuration file.
++
++While it is fairly simple to check which classes and methods in the `org.apache.log4j` package are used by your own application, the task is much more complex, when it comes to your application dependencies.
++
++All the libraries that use **Log4j 1 API** in their code must have a compile dependency on either [log4j:log4j](https://central.sonatype.com/artifact/log4j/log4j) or its clone [ch.qos.reload4j:reload4j](https://central.sonatype.com/artifact/ch.qos.reload4j/reload4j). There are however misconfigured libraries that declare those dependencies, even if they don’t directly use Log4j 1 **at all**.
++
++To distinguish between libraries that use Log4j 1 and those that don’t, you can look for the presence of other logging APIs. If a library **directly** depends on:
++
++*   [`commons-logging:commons-logging`](https://central.sonatype.com/artifact/commons-logging/commons-logging),
++
++*   [`org.apache.logging.log4j:log4j-api`](https://central.sonatype.com/artifact/org.apache.logging.log4j/log4j-api),
++
++*   [`org.slf4j:slf4j-api`](https://central.sonatype.com/artifact/org.slf4j/slf4j-api),
++
++*   [`jboss-logging`](https://central.sonatype.com/artifact/org.jboss.logging/jboss-logging),
++
++*   other logging APIs,
++
++it is fair to assume that it uses those libraries **instead** of **Log4j 1 API**, even if it has a direct dependency on `log4j:log4j` or `ch.qos.reload4j:reload4j`.
++
++The following sections explain how to migrate from Log4j 1 to Log4j 2, depending on the way Log4j 1 is used in your application:
++
++*   if your application or one of its dependencies is coded against Log4j 1 API, see [Log4j 1 API migration](https://logging.apache.org/log4j/2.x/migrate-from-log4j1.html#api-migration),
++
++*   if your application uses Log4j 1 only as logging backend, see [Log4j 1 Backend migration](https://logging.apache.org/log4j/2.x/migrate-from-log4j1.html#backend-migration).
++
++## [](https://logging.apache.org/log4j/2.x/migrate-from-log4j1.html#api-migration)Log4j 1 API migration
++
++To migrate an application that uses Log4j 1 API as logging API, the recommended approach is to modify your code. See [Migrate code from Log4j 1 API to Log4j 2 API](https://logging.apache.org/log4j/2.x/migrate-from-log4j1.html#api-code-migration) for details.
++
++In the case one of your libraries uses Log4j 1 API or you can not modify your logging code at the moment, a Log4j 1 to Log4j 2 bridge is available. See [Use Log4j 1 to Log4j 2 API bridge](https://logging.apache.org/log4j/2.x/migrate-from-log4j1.html#api-use-bridge) for details.
++
++### [](https://logging.apache.org/log4j/2.x/migrate-from-log4j1.html#api-code-migration)Migrate code from Log4j 1 API to Log4j 2 API
++
++You can migrate your code from Log4j 1 to Log4j 2 automatically, by using the [Log4j1ToLog4j2](https://docs.openrewrite.org/recipes/java/logging/log4j/log4j1tolog4j2) OpenRewrite recipe. See [OpenRewrite site](https://docs.openrewrite.org/recipes/java/logging/log4j/log4j1tolog4j2) for more details.
++
++Except the change in the package name from `org.apache.log4j` to `org.apache.logging.log4j`, most of the class and method names in Log4j 2 API are inherited from Log4j 1 API.
++
++In order to migrate you code, you need to:
++
++*   modify the imports and types used by your application, according to the following table:
++
++Table 2. Migration of types from Log4j 1 to Log4j 2
++| Migrate Log4j 1 type | to Log4j type |
++| --- | --- |
++| `org.apache.log4j.MDC` | `org.apache.logging.log4j.ThreadContext` |
++| `org.apache.log4j.NDC` | `org.apache.logging.log4j.ThreadContext` |
++| `org.apache.log4j.Priority` | `org.apache.logging.log4j.Level` |
++| `org.apache.log4j.Level` | `org.apache.logging.log4j.Level` |
++| `org.apache.log4j.Category` | `org.apache.logging.log4j.Logger` |
++| `org.apache.log4j.Logger` | `org.apache.logging.log4j.Logger` |
++| `org.apache.log4j.LogManager` | `org.apache.logging.log4j.LogManager` |
++*   Some Log4j 1 methods were renamed or moved to a different class. Therefore, you need to replace the following methods with their Log4j 2 API equivalents:
++
++Table 3. Migration of methods from Log4j 1 to Log4j 2
++| Migrate Log4j 1 method | to Log4j method |
++| --- | --- |
++| `Logger.getLogger()` | `LogManager.getLogger()` |
++| `Logger.getRootLogger()` | `LogManager.getRootLogger()` |
++| `Category.getEffectiveLevel()` | `Logger.getLevel()` |
++*   Finally, some methods need specific conversion rules to be applied:
++
++Table 4. Special Log4j 1 method migration rules
++| Method | Description |
++| --- | --- |
++| [`Logger.getLogger(String, LoggerFactory)`](https://logging.apache.org/log4j/1.x/apidocs/org/apache/log4j/Logger.html#getLogger(java.lang.String,%20org.apache.log4j.spi.LoggerFactory)) | Remove the `LoggerFactory` parameter and use one of Log4j 2’s other extension mechanisms. |
++| [`LogManager.shutdown()`](https://logging.apache.org/log4j/1.x/apidocs/org/apache/log4j/LogManager.html#shutdown()) | Since Log4j 2.6, an equivalent [`o.a.l.l.LogManager.shutdown()`](https://logging.apache.org/log4j/2.x/javadoc/log4j-api/org/apache/logging/log4j/LogManager.html#shutdown()) method can be used. The utility of this method call depends upon the logging backend used with Log4j API. The Log4j Core backend automatically adds a JVM shutdown hook on start up to perform any cleanups, so the `LogManager.shutdown()` call can be safely removed. Starting in Log4j 2.1, you can also specify a custom [ShutdownCallbackRegistry](https://logging.apache.org/log4j/2.x/javadoc/log4j-core/org/apache/logging/log4j/core/util/ShutdownCallbackRegistry.html). See [log4j2.shutdownCallbackRegistry](https://logging.apache.org/log4j/2.x/manual/systemproperties.html#log4j2.shutdownCallbackRegistry) for more details. |
++| Non Log4j 1 API methods | Methods outside of those listed in [[log4j-1-api-methods]](https://logging.apache.org/log4j/2.x/migrate-from-log4j1.html#log4j-1-api-methods), such as `Logger.setLevel()` need to be replaced with a method call specific to the logging backend used by the application. Some third-party integrators, such as Spring Boot, provide utility methods that let you abstract the logging backend, e.g. the [`LoggingSystem.setLogLevel()`](https://docs.spring.io/spring-boot/api/java/org/springframework/boot/logging/LoggingSystem.html#setLogLevel(java.lang.String,org.springframework.boot.logging.LogLevel)) Spring Boot method. |
++
++To prevent a performance penalty from string concatenation in disabled log statements, Log4j 1 required the use of `is*Enabled()` guards:
++
++```
++if (LOGGER.isInfoEnabled()) {
++    LOGGER.info("Hello " + username + "!");
++}
++```
++
++java
++
++Since Log4j 2 API introduces [parameterized logging](https://logging.apache.org/log4j/2.x/manual/api.html#best-practice-concat) these guards are no longer necessary and the same statement can be rewritten as:
++
++`LOGGER.info("Hello {}!", username);`
++java
++
++### [](https://logging.apache.org/log4j/2.x/migrate-from-log4j1.html#api-use-bridge)[](https://logging.apache.org/log4j/2.x/migrate-from-log4j1.html)Use Log4j 1 to Log4j 2 API bridge
++
++If you can not modify your application’s code or one of your dependencies is using [Log4j 1 API](https://logging.apache.org/log4j/2.x/migrate-from-log4j1.html#log4j-1-api-methods) as logging API, you can delay the migration process by [installing the Log4j 1 to Log4j 2 bridge](https://logging.apache.org/log4j/2.x/migrate-from-log4j1.html#log4j-1-2-api-installation).
++
++Since forwarding Log4j 1 API calls to Log4j 2 API calls is the basic functionality of the bridge, no further configuration is required from your part.
++
++## [](https://logging.apache.org/log4j/2.x/migrate-from-log4j1.html#backend-migration)Log4j 1 Backend migration
++
++If your application uses Log4j 1 **only** as logging backend bound to another logging API, such as Apache Commons Logging (JCL) or SLF4J, you only need to:
++
++1.   Configure all logging bridges to log to Log4j 2 API instead. This can be done by replacing the following dependencies on your application’s runtime classpath:
++
++Table 5. Dependency migration from Log4j 1 to Log4j 2
++| Replace Log4j 1 dependency | with Log4j 2 dependency |
++| --- | --- |
++| [`log4j:log4j`](https://central.sonatype.com/artifact/log4j/log4j) | [`org.apache.logging.log4j:log4j-core`](https://central.sonatype.com/artifact/org.apache.logging.log4j/log4j-core) |
++| [`ch.qos.reload4j:reload4j`](https://central.sonatype.com/artifact/ch.qos.reload4j/reload4j) | [`org.apache.logging.log4j:log4j-core`](https://central.sonatype.com/artifact/org.apache.logging.log4j/log4j-core) |
++| [`commons-logging:commons-logging`](https://central.sonatype.com/artifact/commons-logging/commons-logging) | either upgrade to version 1.3.0 (or later) or replace with [`org.apache.logging.log4j:log4j-jcl`](https://central.sonatype.com/artifact/org.apache.logging.log4j/log4j-slf4j2-impl) |
++| [`org.slf4j:slf4j-log4j12`](https://central.sonatype.com/artifact/org.slf4j/slf4j-log4j12) | [`org.apache.logging.log4j:log4j-slf4j2-impl`](https://central.sonatype.com/artifact/org.apache.logging.log4j/log4j-slf4j2-impl) |
++| [`org.slf4j:slf4j-reload4j`](https://central.sonatype.com/artifact/org.slf4j/slf4j-reload4j) | [`org.apache.logging.log4j:log4j-slf4j2-impl`](https://central.sonatype.com/artifact/org.apache.logging.log4j/log4j-slf4j2-impl) |
++2.   Convert your configuration files from the Log4j 1 to the Log4j 2 configuration format. See [Log4j 1 Configuration file migration](https://logging.apache.org/log4j/2.x/migrate-from-log4j1.html#configuration-file-migration) below for more details.
++
++### [](https://logging.apache.org/log4j/2.x/migrate-from-log4j1.html#migrate-custom-components)Migrate Log4j 1 custom components
++
++Since Log4j 1 offered a limited amount of appenders and layouts, over the years users implemented many **custom** components that offered additional features. If you are currently using a custom Log4j 1 component you should proceed as follows:
++
++1.   Log4j 2 provides many improvements to Log4j 1 components and many new components. Check if the feature offered by your custom component is not already available in Log4j 2. If you can not find the feature, ask on our [support channels](https://logging.apache.org/support.html).
++
++2.   Since Log4j 2.17.2, the Log4j 1 to Log4j 2 bridge has a limited support for using native Log4j 1 appenders and layouts. Native Log4j 1 components can only be configured using Log4j 1 configuration files (see [Use Log4j 1 to Log4j 2 bridge](https://logging.apache.org/log4j/2.x/migrate-from-log4j1.html#ConfigurationCompatibility)) and require the [installation of the Log4j 1 to Log4j 2 bridge](https://logging.apache.org/log4j/2.x/migrate-from-log4j1.html#log4j-1-2-api-installation).
++
++Mixing Log4j 1 and Log4j 2 components will most certainly reduce the performance of the logging system. 
++3.   If your Log4j 1 native component is not supported by the Log4j 1 to Log4j 2 bridge, we suggest to rewrite it directly as Log4j 2 component. See [Extending](https://logging.apache.org/log4j/2.x/manual/extending.html) for more details.
++
++## [](https://logging.apache.org/log4j/2.x/migrate-from-log4j1.html#configuration-file-migration)Log4j 1 Configuration file migration
++
++### [](https://logging.apache.org/log4j/2.x/migrate-from-log4j1.html#Log4j2ConfigurationFormat)Convert configuration file from Log4j 1 to Log4j 2
++
++Although the Log4j 2 configuration syntax is different from that of Log4j 1, most, if not all, of the same functionality is available.
++
++The `log4j-1.2-api` bridge contains a small utility that converts `log4j.properties` files into `log4j2.xml` file. In order to use it you need to:
++
++1.   Download the `log4j-api`, `log4j-core` and `log4j-1.2-api` artifacts. To retrieve them all at once, see the [Download](https://logging.apache.org/log4j/2.x/download.html) page.
++
++2.   Set the `CLASSPATH` environment variable to contain the artifacts mentioned above.
++
++3.   Run
++
++```
++java org.apache.log4j.config.Log4j1ConfigurationConverter \
++  --in log4j.properties --out log4j2.xml
++```
++
++shell
++
++#### [](https://logging.apache.org/log4j/2.x/migrate-from-log4j1.html#configuration-interpolation)Interpolation
++
++Log4j 1 only supports interpolation using system properties and properties from the `log4j.properties` file using the `${foo}` syntax. Log4j 2 extended this mechanism, by introducing pluggable [Lookups](https://logging.apache.org/log4j/2.x/manual/lookups.html).
++
++In order to convert a Log4j 1 configuration file that uses interpolation to a Log4j 2 configuration file, replace all occurrences of `${foo}` with `${sys:foo}`.
++
++#### [](https://logging.apache.org/log4j/2.x/migrate-from-log4j1.html#configuration-appenders)Appenders
++
++Log4j 2 contains an equivalent for most Log4j 1 appenders:
++
++Table 6. Log4j 2 equivalents of Log4j 1 appenders
++| Log4j 1 appender | Log4j 2 equivalent | Notes |
++| --- | --- | --- |
++| `org.apache.log4j.AsyncAppender` | `Async` |  |
++| `org.apache.log4j.ConsoleAppender` | `Console` |  |
++| `org.apache.log4j.DailyRollingFileAppender` | `RollingFile` | See [additional steps below](https://logging.apache.org/log4j/2.x/migrate-from-log4j1.html#rolling-file-conversion). |
++| `org.apache.log4j.FileAppender` | `File` |  |
++| `org.apache.log4j.RollingFileAppender` | `RollingFile` | See [additional steps below](https://logging.apache.org/log4j/2.x/migrate-from-log4j1.html#rolling-file-conversion). |
++| `org.apache.log4j.jdbc.JDBCAppender` | `JDBC` |  |
++| `org.apache.log4j.net.JMSAppender` | `JMS` |  |
++| `org.apache.log4j.net.SocketAppender` | `Socket` |  |
++| `org.apache.log4j.net.SMTPAppender` | `SMTP` |  |
++| `org.apache.log4j.net.SyslogAppender` | `Syslog` | Does not support custom layouts. |
++| `org.apache.log4j.rewrite.RewriteAppender` | `Rewrite` |  |
++
++*   Log4j 2 by default uses a different strategy to determine the index of the archived log files. Log4j 1 always rolls the current log file (e.g. `app.log`) to a log file with index `1` (e.g. `app.log.1`). Log4j 2 on the other hand uses the first available index (e.g. `app.log.42` if files `app.log.1` thru `app.log.41` already exist).
++
++To use the same algorithm to determine the index of the logged file in Log4j 1 and Log4j 2, you need to configure the `fileIndex` attribute of the [default rollover strategy](https://logging.apache.org/log4j/2.x/manual/appenders/rolling-file.html#DefaultRolloverStrategy) to `min`.
++
++`<DefaultRolloverStrategy fileIndex="min"/>`
++xml 
++*   The two rolling file appenders available in Log4j 1, use an implicit file pattern and triggering policy for the archived log files. If the current log file is called `app.log`, you need to configure the Log4j 2 rolling file appender with the following `filePattern` and triggering policy configuration options:
++
++Table 7. Rolling file appender conversion
++| Log4j 1 appender | Log4j 2 `filePattern` | Log4j 2 triggering policy |
++| --- | --- | --- |
++| `org.apache.log4j.DailyRollingFileAppender` | `app.%d{YYYY-MM-dd}` | `TimeBasedTriggeringPolicy` |
++| `org.apache.log4j.RollingFileAppender` | `app.%i` | `SizeBasedTriggeringPolicy` |
++
++#### [](https://logging.apache.org/log4j/2.x/migrate-from-log4j1.html#configuration-layouts)Layouts
++
++Log4j 1 layouts can be converted to Log4j 2 layouts using the following conversion rules:
++
++The formatting of the `%p` (when used with custom levels), `%x` and `%X` pattern converters slightly changed between Log4j 1 and Log4j 2. If an exact backward compatibility is required, you need to [install the Log4j 1 to Log4j 2 bridge](https://logging.apache.org/log4j/2.x/migrate-from-log4j1.html#log4j-1-2-api-installation) and use the following extended patterns:
++
++| Log4j 1 pattern | Log4j 1 to Log4j 2 bridge pattern |
++| --- | --- |
++| `%p` | `%v1Level` |
++| `%x` | `%ndc` |
++| `%X` | `%properties` |
++
++### [](https://logging.apache.org/log4j/2.x/migrate-from-log4j1.html#ConfigurationCompatibility)Use Log4j 1 to Log4j 2 bridge
++
++If you cannot convert your configuration files from Log4j 1 to Log4j 2, the Log4j 1 to Log4j 2 bridge can convert your configuration files at runtime. To use this feature, you need to [Install the Log4j 1 to Log4j 2 bridge](https://logging.apache.org/log4j/2.x/migrate-from-log4j1.html#log4j-1-2-api-installation) and set one of the following configuration properties:
++
++#### [](https://logging.apache.org/log4j/2.x/migrate-from-log4j1.html#log4j1.compatibility)`log4j1.compatibility`
++
++| Env. variable | LOG4J_COMPATIBILITY |
++| --- |
++| Type | `boolean` |
++| Default value | `false` |
++
++If set to `true`, Log4j 2 will:
++
++*   Scan the classpath to find Log4j 1 configuration files in the following standard locations:
++
++    *   `log4j-test.properties`,
++
++    *   `log4j-test.xml`,
++
++    *   `log4j.properties`,
++
++    *   `log4j.xml`.
++
++*   (since `2.24.0`) Enable the usage of the `o.a.log4j.PropertyConfigurator` and `o.a.log4j.xml.DOMConfigurator` classes in your code.
++
++#### [](https://logging.apache.org/log4j/2.x/migrate-from-log4j1.html#log4j.configuration)`log4j.configuration`
++
++| Env. variable | LOG4J_CONFIGURATION_FILE |
++| --- |
++| Type | [Path](https://docs.oracle.com/javase/8/docs/api/java/nio/file/Path.html) or [URI](https://docs.oracle.com/javase/8/docs/api/java/net/URI.html) |
++| Default value | `null` |
++
++If not `null`, Log4j 2 will try to retrieve a **Log4j 1** configuration file from the given location. The configuration file name must end in `.properties` (Log4j 1 properties format) or `.xml` (Log4j 1 XML format). See also [limitations of Log4j 1 configuration compatibility layer](https://logging.apache.org/log4j/2.x/migrate-from-log4j1.html##limitations-of-the-log4j-1-x-bridge).
++
++#### [](https://logging.apache.org/log4j/2.x/migrate-from-log4j1.html#limitations-of-the-log4j-1-x-bridge)[](https://logging.apache.org/log4j/2.x/migrate-from-log4j1.html)Limitations of runtime configuration conversion
++
++The support for Log4j 1 configuration files uses Log4j 2 Core plugin system and can be extended by implementing a plugin of type `org.apache.log4j.builders.Builder`.
++
++Appenders
++
++*   [`org.apache.log4j.AsyncAppender`](https://logging.apache.org/log4j/2.x/plugin-reference.html#org-apache-logging-log4j_log4j-1-2-api_org-apache-log4j-builders-appender-AsyncAppenderBuilder),
++
++*   [`org.apache.log4j.ConsoleAppender`](https://logging.apache.org/log4j/2.x/plugin-reference.html#org-apache-logging-log4j_log4j-1-2-api_org-apache-log4j-builders-appender-ConsoleAppenderBuilder),
++
++*   [`org.apache.log4j.DailyRollingFileAppender`](https://logging.apache.org/log4j/2.x/plugin-reference.html#org-apache-logging-log4j_log4j-1-2-api_org-apache-log4j-builders-appender-DailyRollingFileAppenderBuilder),
++
++*   [`org.apache.log4j.FileAppender`](https://logging.apache.org/log4j/2.x/plugin-reference.html#org-apache-logging-log4j_log4j-1-2-api_org-apache-log4j-builders-appender-FileAppenderBuilder),
++
++*   [`org.apache.log4j.RollingFileAppender`](https://logging.apache.org/log4j/2.x/plugin-reference.html#org-apache-logging-log4j_log4j-1-2-api_org-apache-log4j-builders-appender-RollingFileAppenderBuilder),
++
++*   [`org.apache.log4j.net.SocketAppender`](https://logging.apache.org/log4j/2.x/plugin-reference.html#org-apache-logging-log4j_log4j-1-2-api_org-apache-log4j-builders-appender-SocketAppenderBuilder),
++
++*   [`org.apache.log4j.net.SyslogAppender`](https://logging.apache.org/log4j/2.x/plugin-reference.html#org-apache-logging-log4j_log4j-1-2-api_org-apache-log4j-builders-appender-SyslogAppenderBuilder),
++
++*   [`org.apache.log4j.rewrite.RewriteAppender`](https://logging.apache.org/log4j/2.x/plugin-reference.html#org-apache-logging-log4j_log4j-1-2-api_org-apache-log4j-builders-appender-RewriteAppenderBuilder),
++
++*   [`org.apache.log4j.rolling.RollingFileAppender`](https://logging.apache.org/log4j/2.x/plugin-reference.html#org-apache-logging-log4j_log4j-1-2-api_org-apache-log4j-builders-appender-EnhancedRollingFileAppenderBuilder),
++
++*   [`org.apache.log4j.varia.NullAppender`](https://logging.apache.org/log4j/2.x/plugin-reference.html#org-apache-logging-log4j_log4j-1-2-api_org-apache-log4j-builders-appender-NullAppenderBuilder).
++
++Filters
++
++*   [`org.apache.log4j.varia.DenyAllFilter`](https://logging.apache.org/log4j/2.x/plugin-reference.html#org-apache-logging-log4j_log4j-1-2-api_org-apache-log4j-builders-filter-DenyAllFilterBuilder),
++
++*   [`org.apache.log4j.varia.LevelMatchFilter`](https://logging.apache.org/log4j/2.x/plugin-reference.html#org-apache-logging-log4j_log4j-1-2-api_org-apache-log4j-builders-filter-LevelMatchFilterBuilder),
++
++*   [`org.apache.log4j.varia.LevelRangeFilter`](https://logging.apache.org/log4j/2.x/plugin-reference.html#org-apache-logging-log4j_log4j-1-2-api_org-apache-log4j-builders-filter-LevelRangeFilterBuilder),
++
++*   [`org.apache.log4j.varia.StringMatchFilter`](https://logging.apache.org/log4j/2.x/plugin-reference.html#org-apache-logging-log4j_log4j-1-2-api_org-apache-log4j-builders-filter-StringMatchFilterBuilder).
++
++Layouts
++
++*   [`org.apache.log4j.HTMLLayout`](https://logging.apache.org/log4j/2.x/plugin-reference.html#org-apache-logging-log4j_log4j-1-2-api_org-apache-log4j-builders-layout-HtmlLayoutBuilder),
++
++*   [`org.apache.log4j.PatternLayout`](https://logging.apache.org/log4j/2.x/plugin-reference.html#org-apache-logging-log4j_log4j-1-2-api_org-apache-log4j-builders-layout-PatternLayoutBuilder) and `org.apache.log4j.EnhancedPatternLayout`,
++
++*   [`org.apache.log4j.SimpleLayout`](https://logging.apache.org/log4j/2.x/plugin-reference.html#org-apache-logging-log4j_log4j-1-2-api_org-apache-log4j-builders-layout-SimpleLayoutBuilder),
++
++*   [`org.apache.log4j.TTCCLayout`](https://logging.apache.org/log4j/2.x/plugin-reference.html#org-apache-logging-log4j_log4j-1-2-api_org-apache-log4j-builders-layout-TTCCLayoutBuilder),
++
++*   [`org.apache.log4j.xml.XMLLayout`](https://logging.apache.org/log4j/2.x/plugin-reference.html#org-apache-logging-log4j_log4j-1-2-api_org-apache-log4j-builders-layout-XmlLayoutBuilder).
++
++Triggering policies
++
++*   [`org.apache.log4j.rolling.CompositeTriggeringPolicy`](https://logging.apache.org/log4j/2.x/plugin-reference.html#org-apache-logging-log4j_log4j-1-2-api_org-apache-log4j-builders-rolling-CompositeTriggeringPolicyBuilder),
++
++*   [`org.apache.log4j.rolling.SizeBasedTriggeringPolicy`](https://logging.apache.org/log4j/2.x/plugin-reference.html#org-apache-logging-log4j_log4j-1-2-api_org-apache-log4j-builders-rolling-SizeBasedTriggeringPolicyBuilder),
++
++*   [`org.apache.log4j.rolling.TimeBasedRollingPolicy`](https://logging.apache.org/log4j/2.x/plugin-reference.html#org-apache-logging-log4j_log4j-1-2-api_org-apache-log4j-builders-rolling-TimeBasedRollingPolicyBuilder).
++
++## [](https://logging.apache.org/log4j/2.x/migrate-from-log4j1.html#option-1-use-the-log4j-1-x-bridge-log4j-1-2-api)[](https://logging.apache.org/log4j/2.x/migrate-from-log4j1.html)Log4j 1 to Log4j 2 bridge
++
++To help users with the migration process, a Log4j 1 to Log4j 2 bridge is available. The bridge can fulfill four separate functions:
++
++*   It forwards all [Log4j 1 API](https://logging.apache.org/log4j/2.x/migrate-from-log4j1.html#log4j-1-api-methods) method calls to the Log4j 2 API. See [how to use the bridge for Log4j 1 API migration](https://logging.apache.org/log4j/2.x/migrate-from-log4j1.html#api-use-bridge) for more details.
++
++*   Since version 2.17.2 the bridge supports the usage of some components written for Log4j 1 inside Log4j 2 Core. See [how to use the bridge for Log4j 1 Backend migration](https://logging.apache.org/log4j/2.x/migrate-from-log4j1.html#migrate-custom-components) for more details.
++
++*   It provides limited support for programmatic configuration of Log4j 2 Core, using Log4j 1 method calls. This functionality requires the [`log4j1.compatibility` configuration property](https://logging.apache.org/log4j/2.x/migrate-from-log4j1.html#log4j1.compatibility) to be set to `true`.
++
++*   It provides a limited support for Log4j 1 configuration file formats. See [how to use the bridge for Log4j 1 Configuration file migration](https://logging.apache.org/log4j/2.x/migrate-from-log4j1.html#ConfigurationCompatibility) for more details.
++
++### [](https://logging.apache.org/log4j/2.x/migrate-from-log4j1.html#log4j-1-2-api-installation)Installation
++
++Since the Log4j 1 to Log4j 2 Bridge **replaces** Log4j 1 classes, it is incompatible with the following artifacts:
++
++*   [`log4j:log4j`](https://central.sonatype.com/artifact/log4j/log4j)
++
++*   [`ch.qos.reload4j:reload4j`](https://central.sonatype.com/artifact/ch.qos.reload4j/reload4j),
++
++*   [`org.slf4j:log4j-over-slf4j`](https://central.sonatype.com/artifact/org.slf4j/log4j-over-slf4j)
++
++Before installing the bridge, you need to make sure that none of the artifacts above are present in your runtime classpath.
++
++To install the bridge, add the following dependency to your application:
++
++*   Maven
++
++*   Gradle
++
++We assume you use [`log4j-bom`](https://logging.apache.org/log4j/2.x/components.html#log4j-bom) for dependency management.
++
++```
++<dependency>
++  <groupId>org.apache.logging.log4j</groupId>
++  <artifactId>log4j-1.2-api</artifactId>
++  <scope>runtime</scope>
++</dependency>
++```
++
++xml
++
++### [](https://logging.apache.org/log4j/2.x/migrate-from-log4j1.html#when-to-stop-using-the-log4j-1-x-bridge)When to stop using the Log4j 1 to Log4j 2 bridge
++
++The Log4j 1 to Log4j 2 bridge is not conceived as a long term solution. Once:
++
++*   you have migrated your logging code to use Log4j 2 API (see [Migrate code from Log4j 1 API to Log4j 2 API](https://logging.apache.org/log4j/2.x/migrate-from-log4j1.html#api-code-migration)),
++
++*   you have migrated your configuration files to use the Log4j 2 configuration format (see [Log4j 1 Configuration file migration](https://logging.apache.org/log4j/2.x/migrate-from-log4j1.html#configuration-file-migration)),
++
++*   upgraded all the dependencies that use Log4j 1 directly to newer versions that use a proper logging API (JCL, Log4j 2 API, JBoss logging, SLF4J),
++
++the bridge is no longer necessary and should be removed.
++
++The separation of logging APIs from logging implementations started in 2002, with the release of [Apache Commons Logging](https://commons.apache.org/proper/commons-logging/) (formerly known as Jakarta Commons Logging).
++
++We are unaware of any **maintained** library that is currently using Log4j 1. However, if this is your case, please contact the library maintainer and ask them to migrate to one of the available logging APIs.
+diff --git a/pom.xml b/pom.xml
+index 2828814..5e46ff3 100644
+--- a/pom.xml
++++ b/pom.xml
+@@ -272,9 +272,9 @@
+     <!-- common compile time dependencies -->
+ 
+     <dependency>
+-      <groupId>commons-logging</groupId>
+-      <artifactId>commons-logging</artifactId>
+-      <version>1.0.4</version>
++      <groupId>org.apache.logging.log4j</groupId>
++      <artifactId>log4j-jcl</artifactId>
++      <version>2.24.3</version>
+       <scope>compile</scope>
+     </dependency>
+ 
+@@ -290,14 +290,7 @@
+     <dependency>
+       <groupId>org.apache.logging.log4j</groupId>
+       <artifactId>log4j-core</artifactId>
+-      <version>2.23.1</version>
+-      <scope>runtime</scope>
+-    </dependency>
+-
+-    <dependency>
+-      <groupId>org.apache.logging.log4j</groupId>
+-      <artifactId>log4j-jcl</artifactId>
+-      <version>2.23.1</version>
++      <version>2.24.3</version>
+       <scope>runtime</scope>
+     </dependency>
+ 
+diff --git a/project.xml b/project.xml
+index bfd958c..adda674 100644
+--- a/project.xml
++++ b/project.xml
+@@ -120,9 +120,9 @@
+ 		</dependency>
+ 
+ 		<dependency>
+-		  <groupId>commons-logging</groupId>
+-		  <artifactId>commons-logging</artifactId>
+-		  <version>1.0.4</version>
++		  <groupId>org.apache.logging.log4j</groupId>
++		  <artifactId>log4j-jcl</artifactId>
++		  <version>2.24.3</version>
+ 		  <properties>
+ 		  	<scope>compile</scope>
+ 		  </properties>
+@@ -131,16 +131,7 @@
+ 		<dependency>
+ 		  <groupId>org.apache.logging.log4j</groupId>
+ 		  <artifactId>log4j-core</artifactId>
+-		  <version>2.23.1</version>
+-		  <properties>
+-		  	<scope>runtime</scope>
+-		  </properties>
+-		</dependency>
+-
+-		<dependency>
+-		  <groupId>org.apache.logging.log4j</groupId>
+-		  <artifactId>log4j-jcl</artifactId>
+-		  <version>2.23.1</version>
++		  <version>2.24.3</version>
+ 		  <properties>
+ 		  	<scope>runtime</scope>
+ 		  </properties>
+diff --git a/src/main/resources/log4j2.xml b/src/main/resources/log4j2.xml
+index 298b91a..357df3e 100644
+--- a/src/main/resources/log4j2.xml
++++ b/src/main/resources/log4j2.xml
+@@ -9,7 +9,7 @@
+       <Policies>
+         <SizeBasedTriggeringPolicy size="10000 KB"/>
+       </Policies>
+-      <DefaultRolloverStrategy max="1"/>
++      <DefaultRolloverStrategy max="1" fileIndex="min"/>
+     </RollingFile>
+   </Appenders>
+   <Loggers>
